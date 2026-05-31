@@ -51,7 +51,6 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
         "NYダウ": "^DJI",
         "NASDAQ": "^IXIC",
         "S&P500": "^GSPC",
-        "TOPIX": "^TOPX"
     }
 
     results = []

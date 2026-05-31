@@ -28,6 +28,57 @@
 
     <div id="fav-result"></div>
 
+    <form action="/stock" method="post" class="card p-3 mt-4">
+
+    <div class="mb-3">
+        <label for="code" class="form-label">
+            銘柄コード
+        </label>
+        <input
+            type="text"
+            id="code"
+            name="code"
+            class="form-control"
+            value="{{ code if code else '' }}"
+            placeholder="例: 7203 または 7203.T"
+            required
+        >
+    </div>
+
+    <div class="mb-3">
+        <label for="ma_short" class="form-label">
+            短期MA
+        </label>
+        <input
+            type="number"
+            id="ma_short"
+            name="ma_short"
+            class="form-control"
+            value="{{ ma_short if ma_short else 5 }}"
+            min="1"
+        >
+    </div>
+
+    <div class="mb-3">
+        <label for="ma_long" class="form-label">
+            長期MA
+        </label>
+        <input
+            type="number"
+            id="ma_long"
+            name="ma_long"
+            class="form-control"
+            value="{{ ma_long if ma_long else 25 }}"
+            min="1"
+        >
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        チャート表示
+    </button>
+
+</form>
+
     <a href="/" class="btn btn-secondary">戻る</a>
 
 </div>
@@ -36,21 +87,19 @@
 
 <script>
 document.getElementById("fav-btn").addEventListener("click", async () => {
-    const code = "{{ code }}";
-    const csrf = "{{ request.cookies.get('csrf_token') }}";  // ← 追加
+    const code = "{{ code if code else '' }}";
+    const csrf = "{{ request.cookies.get('csrf_token') }}";
 
     const res = await fetch("/favorite", {
         method: "POST",
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: `code=${encodeURIComponent(code)}&csrf_token=${encodeURIComponent(csrf)}`  // ← 追加
+        body: `code=${encodeURIComponent(code)}&csrf_token=${encodeURIComponent(csrf)}`
     });
 
     const data = await res.json();
 
-
-    // メッセージ表示
     const result = document.getElementById("fav-result");
     if (data.status === "ok") {
         result.innerHTML = `<div class="alert alert-success mt-3">お気に入りに追加しました！</div>`;
@@ -62,5 +111,7 @@ document.getElementById("fav-btn").addEventListener("click", async () => {
 
 </body>
 </html>
+
+
 
 
