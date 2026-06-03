@@ -81,7 +81,7 @@ def show_stock(
                 "stock.html",
                 {
                     "request": request,
-                    "message": f"{code} のチャート（キャッシュ）",
+                    "message": f"{code} のチャート（3分で更新）",
                     "img_path": img_path,
                     "ma_short": ma_short,
                     "ma_long": ma_long,

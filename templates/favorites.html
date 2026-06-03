@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>お気に入り一覧</title>
 
-    <!-- Bootstrap CSS -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -16,32 +15,49 @@
 
     <h1 class="mb-4">お気に入り銘柄</h1>
 
-    <ul class="list-group mb-4">
-    {% for code, name in favorites %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <a href="/stock?code={{ code }}" class="text-decoration-none">
-                {{ code }} - {{ name }}
-            </a>
+    {% if favorites %}
+        <ul class="list-group mb-4">
+        {% for code, name in favorites %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
 
-            <form action="/delete_favorite" method="post" class="m-0">
-                <input type="hidden" name="code" value="{{ code }}">
-                <input type="hidden" name="csrf_token" value="{{ request.cookies.get('csrf_token') }}">
-                <button type="submit" class="btn btn-danger btn-sm">削除</button>
-            </form>
-        </li>
-    {% endfor %}
-    </ul>
+                <!-- 銘柄リンク -->
+                <div>
+                    <a href="/stock?code={{ code }}" class="text-decoration-none fw-bold">
+                        {{ name if name else code }}
+                    </a>
+                    <div class="text-muted small">{{ code }}</div>
+                </div>
 
-    <a href="/" class="btn btn-secondary">戻る</a>
+                <!-- 削除ボタン -->
+                <form action="/delete_favorite" method="post" class="m-0">
+                    <input type="hidden" name="code" value="{{ code }}">
+                    <input type="hidden" name="csrf_token" value="{{ request.cookies.get('csrf_token') }}">
+                    <button type="submit" class="btn btn-danger btn-sm">
+                        削除
+                    </button>
+                </form>
+
+            </li>
+        {% endfor %}
+        </ul>
+
+    {% else %}
+        <!-- ✅ 空のとき -->
+        <div class="alert alert-secondary">
+            お気に入りはまだ登録されていません
+        </div>
+    {% endif %}
+
+    <div class="d-flex gap-2">
+        <a href="/" class="btn btn-secondary">ホーム</a>
+        <a href="/stock" class="btn btn-primary">銘柄検索</a>
+    </div>
 
 </div>
 
-
-
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 
 </body>
 </html>
+
 

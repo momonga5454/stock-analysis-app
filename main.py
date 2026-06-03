@@ -1,39 +1,65 @@
-from fastapi import FastAPI, Request, Depends
+from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 import yfinance as yf
 import sqlite3
+import os
+import bcrypt
 
-# ルーター読み込み
+
+# ルーター
 from router.auth import router as auth_router, get_current_user
 from router.stock import router as stock_router
 from router.favorites import router as favorites_router
 
-
 # ================================
-#  DB 初期化
+# DB 初期化
 # ================================
-import bcrypt
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "database", "stock.db")
 
-hashed = bcrypt.hashpw("password".encode(), bcrypt.gensalt())
+os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
 
-conn = sqlite3.connect("stocks.db")
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
+# users
 cursor.execute("""
-    INSERT OR IGNORE INTO users (username, password)
-    VALUES (?, ?)
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT
+)
+""")
+
+# favorites
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS favorites (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    code TEXT,
+    name TEXT,
+    UNIQUE(user_id, code)
+)
+""")
+
+# admin作成
+hashed = bcrypt.hashpw("password".encode(), bcrypt.gensalt())
+
+cursor.execute("""
+INSERT OR IGNORE INTO users (username, password)
+VALUES (?, ?)
 """, ("admin", hashed))
 
 conn.commit()
 conn.close()
 
 # ================================
-#  FastAPI アプリ本体
+# FastAPI
 # ================================
 app = FastAPI()
 
-# ルーター登録
 app.include_router(auth_router)
 app.include_router(stock_router)
 app.include_router(favorites_router)
@@ -42,7 +68,7 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # ================================
-#  ホーム画面
+# ホーム
 # ================================
 @app.get("/")
 def home(request: Request, user_id: int = Depends(get_current_user)):
@@ -54,6 +80,7 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
     }
 
     results = []
+
     for name, code in indices.items():
         try:
             stock = yf.Ticker(code)
@@ -68,7 +95,7 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
                     price = hist["Close"].iloc[-1]
                     prev_close = hist["Close"].iloc[-2]
 
-            # 前日比計算
+            # 差分計算
             if price and prev_close:
                 diff = price - prev_close
                 diff_percent = (diff / prev_close) * 100
@@ -84,7 +111,7 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
                 "diff_percent": diff_percent
             })
 
-        except Exception:
+        except:
             results.append({
                 "name": name,
                 "code": code,
@@ -95,6 +122,15 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
 
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "user": user_id, "indices": results}
+        {
+            "request": request,
+            "user": user_id,
+            "indices": results
+        }
     )
 
+@app.exception_handler(HTTPException)
+def auth_exception_handler(request, exc):
+    if exc.status_code == 401:
+        return RedirectResponse("/login")
+    return RedirectResponse("/")
