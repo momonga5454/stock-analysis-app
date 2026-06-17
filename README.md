@@ -91,23 +91,31 @@ stock_app/
 
 ### ① 仮想環境作成
 
-```bash
+
 python -m venv venv
 source venv/bin/activate
+
+---
 
 ### ② ライブラリインストール
 
 pip install fastapi uvicorn yfinance panda
 
+---
+
 ### ③　サーバー起動
 
 uvicorn main:app --reload
-``
+
+---
+
 ### ④　アクセス
 
 http://127.0.0.1:8000
 
-主なAPI
+---
+
+##　主なAPI
 株価データ保存
 GET /api/data/prices/{symbol}
 
