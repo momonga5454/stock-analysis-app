@@ -12,10 +12,23 @@ import bcrypt
 from router.auth import router as auth_router, get_current_user
 from router.stock import router as stock_router
 from router.favorites import router as favorites_router
+from init_db import init_db
+from router.data import router as data_router
+from router.trade import router as trade_router
+from router.trade_view import router as trade_view_router
+
 
 # ================================
 # DB 初期化
 # ================================
+init_db()
+
+# ================================
+# FastAPI
+# ================================
+app = FastAPI()
+
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "database", "stock.db")
 
@@ -63,6 +76,9 @@ app = FastAPI()
 app.include_router(auth_router)
 app.include_router(stock_router)
 app.include_router(favorites_router)
+app.include_router(data_router)
+app.include_router(trade_router)
+app.include_router(trade_view_router)
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
