@@ -114,8 +114,7 @@ uvicorn main:app --reload
 http://127.0.0.1:8000
 
 ---
-
-##　主なAPI
+## 主なAPI
 株価データ保存
 GET /api/data/prices/{symbol}
 
@@ -130,8 +129,9 @@ GET /api/data/backtest/{symbol}?hold_days=1
 トレード一覧
 GET /trades
 
+---
 
-##📊 これからの拡張
+## これからの拡張
 
 タグ分析画面
 勝率・収益の可視化
@@ -139,20 +139,23 @@ GET /trades
 グラフ（収益推移）
 AIによる戦略分析
 
+---
 
-##🎯 今後のビジョン
+## 今後のビジョン
 
 感覚ではなくデータで投資判断する
 自分のトレードの癖を分析する
 勝ちパターンを再現可能にする
 
+---
 
-##📝 メモ
+## メモ
 
 本アプリは学習・研究目的です
 投資判断は自己責任で行ってください
 
+---
 
-##👤 Author
+## 👤 Author
 
 GitHub: https://github.com/momonga5454
