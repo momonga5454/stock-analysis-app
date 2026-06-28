@@ -1,7 +1,13 @@
 import pandas as pd
 from db import get_conn
 
-def run_backtest(symbol: str, hold_days: int = 1):
+
+def run_backtest(
+    symbol: str,
+    hold_days: int = 1,
+    start: str = None,
+    end: str = None
+):
 
     db = get_conn()
 
@@ -10,6 +16,19 @@ def run_backtest(symbol: str, hold_days: int = 1):
     WHERE stock_code = ?
     ORDER BY date
     """, db, params=(symbol,))
+
+    
+    if start:
+        df = df[df["date"] >= start]
+
+    if end:
+        df = df[df["date"] <= end]
+
+    # 指標計算（そのまま）
+    df["return"] = (
+        df["open"].shift(-hold_days) - df["open"]
+    ) / df["open"]
+
 
     db.close()
 

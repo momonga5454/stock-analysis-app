@@ -4,6 +4,10 @@ from fastapi.responses import RedirectResponse
 from db import get_db
 from router.auth import get_current_user
 from typing import List
+from services.tag_analysis import analyze_tags
+from services.tag_analysis import analyze_tag_combinations
+from services.price_service import fetch_and_save_prices
+from services.backtest import run_backtest
 
 router = APIRouter(tags=["trade-view"])
 
@@ -38,6 +42,7 @@ def create_trade_form(
     sell_price: float = Form(...),
     memo: str = Form(""),
     tag_ids: List[int] = Form([]),
+    new_tags: List[str] = Form([]),
     db = Depends(get_db),
     user_id = Depends(get_current_user)
 ):
@@ -61,6 +66,16 @@ def create_trade_form(
     ))
 
     trade_id = cursor.lastrowid
+
+    # ✅ 新しいタグがあれば追加
+    for new_tag in new_tags:
+        cursor.execute("INSERT OR IGNORE INTO tags (name) VALUES (?)", (new_tag,))
+    
+        # 作ったタグID取得
+        cursor.execute("SELECT id FROM tags WHERE name = ?", (new_tag,))
+        new_tag_id = cursor.fetchone()[0]
+        tag_ids.append(new_tag_id)
+
     for tag_id in tag_ids:
         cursor.execute("""
         INSERT INTO taggings (trade_id, tag_id)
@@ -111,3 +126,65 @@ def delete_trade_form(
     db.commit()
 
     return RedirectResponse(url="/trades", status_code=303)
+
+
+@router.get("/tag-analysis")
+def tag_analysis_page(
+    request: Request,
+    user_id = Depends(get_current_user)
+):
+    results = analyze_tags(user_id)
+
+    return templates.TemplateResponse("tag_analysis.html", {
+        "request": request,
+        "results": results
+    })
+
+
+@router.get("/tag-combo-analysis")
+def tag_combo_page(
+    request: Request,
+    user_id=Depends(get_current_user)
+):
+    results = analyze_tag_combinations(user_id)
+
+    return templates.TemplateResponse("tag_combo_analysis.html", {
+        "request": request,
+        "results": results
+    })
+
+@router.get("/backtest")
+@router.get("/backtest-ui")
+def backtest_ui(request: Request):
+    return templates.TemplateResponse("backtest.html", {
+        "request": request,
+        "result": None
+    })
+
+
+@router.post("/backtest")
+def run_backtest_form(
+    request: Request,
+    symbol: str = Form(...),
+    start: str = Form(...),
+    end: str = Form(...),
+    hold_days: int = Form(...),
+    user_id=Depends(get_current_user)
+):
+    symbol = symbol.upper()
+
+    if symbol.isdigit():
+        symbol += ".T"
+
+    fetch_result = fetch_and_save_prices(symbol)
+    result = run_backtest(symbol, hold_days, start, end)
+
+    return templates.TemplateResponse("backtest.html", {
+        "request": request,
+        "symbol": symbol,
+        "start": start,
+        "end": end,
+        "hold_days": hold_days,
+        "fetch_result": fetch_result,
+        "result": result
+    })

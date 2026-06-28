@@ -16,7 +16,7 @@ from init_db import init_db
 from router.data import router as data_router
 from router.trade import router as trade_router
 from router.trade_view import router as trade_view_router
-
+from router.tag import router as tag_router
 
 # ================================
 # DB 初期化
@@ -79,6 +79,7 @@ app.include_router(favorites_router)
 app.include_router(data_router)
 app.include_router(trade_router)
 app.include_router(trade_view_router)
+app.include_router(tag_router)
 
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -107,12 +108,12 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
             # fallback
             if price is None:
                 hist = stock.history(period="2d")
-                if not hist.empty:
+                if len(hist) >= 2:
                     price = hist["Close"].iloc[-1]
                     prev_close = hist["Close"].iloc[-2]
 
             # 差分計算
-            if price and prev_close:
+            if price is not None and prev_close is not None and prev_close != 0:
                 diff = price - prev_close
                 diff_percent = (diff / prev_close) * 100
             else:
@@ -131,7 +132,7 @@ def home(request: Request, user_id: int = Depends(get_current_user)):
             results.append({
                 "name": name,
                 "code": code,
-                "price": "N/A",
+                "price": None,
                 "diff": None,
                 "diff_percent": None
             })

@@ -1,5 +1,9 @@
 from fastapi import APIRouter, Depends
 from db import get_db
+from services.tag_analysis import analyze_tags
+from services.tag_analysis import analyze_tag_combinations
+from router.auth import get_current_user
+
 
 router = APIRouter(prefix="/api/tags", tags=["tags"])
 
@@ -39,3 +43,12 @@ def assign_tag(
     db.commit()
 
     return {"status": "ok"}
+
+@router.get("/analysis")
+def tag_analysis(user_id = Depends(get_current_user)):
+    return analyze_tags(user_id)
+
+@router.get("/analysis/combo")
+def tag_combo_analysis(user_id=Depends(get_current_user)):
+    return analyze_tag_combinations(user_id)
+

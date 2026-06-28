@@ -9,5 +9,10 @@ def save_prices(symbol: str):
     return fetch_and_save_prices(symbol)
 
 @router.get("/backtest/{symbol}")
-def backtest(symbol: str, hold_days: int = 1):
-    return run_backtest(symbol, hold_days)
+def backtest(
+    symbol: str,
+    hold_days: int = 1,
+    start: str = None,
+    end: str = None
+):
+    return run_backtest(symbol, hold_days, start, end)
