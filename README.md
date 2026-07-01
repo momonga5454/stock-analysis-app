@@ -210,12 +210,13 @@ POST /api/tags/
 POST /api/tags/assign
 GET  /api/tags/analysis
 GET  /api/tags/analysis/combo
+```
 
-##　画面イメージ
+## 画面イメージ
 
 
 
-## 今後の拡張方針
+## API
 
 このアプリの最終形は、単なる株価確認ではなく、投資判断の傾向分析です。
 
