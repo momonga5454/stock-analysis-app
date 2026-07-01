@@ -160,7 +160,6 @@ stock_app/
 このプロジェクトは WSL 側の仮想環境で動かす想定です。
 
 ```bash
-cd /mnt/c/Users/津久井　遼/OneDrive/Desktop/Github/stock_app
 source venv/bin/activate
 uvicorn main:app --reload
 ```
